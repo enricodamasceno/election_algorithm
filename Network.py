@@ -20,10 +20,10 @@ class Network:
         node.nodes = self.nodes
         if self.leader:
             node.leader = self.leader
-            logger.debug(f"Nó {node.node_id} foi adicionado à rede e reconheceu o líder existente: Nó {node.leader.node_id}. Informado pela rede.")
+            logger.info(f"Nó {node.node_id} foi adicionado à rede e reconheceu o líder existente: Nó {node.leader.node_id}. Informado pela rede.")
         
         else:
-            logger.debug(f"Nó {node.node_id} foi adicionado à rede.")
+            logger.info(f"Nó {node.node_id} foi adicionado à rede.")
             node.elect_leader()
 
     def remove_node(self, node):
@@ -33,7 +33,7 @@ class Network:
         
         self.nodes.remove(node)
         node.alive = False
-        logger.debug(f"Nó {node.node_id} foi removido da rede. Informando outros nós.")
+        logger.info(f"Nó {node.node_id} foi removido da rede. Informando outros nós.")
             
         if node == self.leader:
             logger.debug(f"Nó {node.node_id} era o líder. Iniciando nova eleição.")

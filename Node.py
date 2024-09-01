@@ -10,7 +10,6 @@ class Node:
         self.network = network
         self.leader = None
         self.alive = True  # Indica se o nó está vivo
-        logger.debug(f"Nó {self.node_id} inicializado.")
 
     def elect_leader(self):
         if self.leader and self.leader.alive:
@@ -18,7 +17,7 @@ class Node:
                 logger.debug(f"Nó {self.node_id} detectou líder existente: Nó {self.leader.node_id}")
                 return
         
-        logger.debug(f"Nó {self.node_id} iniciando processo de eleição.")
+        logger.info(f"Nó {self.node_id} iniciando processo de eleição.")
         max_priority_node = min(
             [node for node in self.nodes if node.alive], 
             key=lambda node: node.node_id
@@ -31,7 +30,7 @@ class Node:
             if node != self: # Não se comunica consigo mesmo
                 self.network.net_comm(self, node)
         
-        logger.debug(f"Eleição concluída. Líder eleito: Nó {self.leader.node_id}")
+        logger.info(f"Eleição concluída. Líder eleito: Nó {self.leader.node_id}")
 
     def communicate(self, target_node):
         if not self.alive: # Apenas nós vivos podem se comunicar
@@ -81,5 +80,5 @@ class Node:
                 return True
             
     def kill(self):
-        logger.error(f"Nó {self.node_id} caiu.")
+        logger.warning(f"Nó {self.node_id} caiu.")
         self.alive = False

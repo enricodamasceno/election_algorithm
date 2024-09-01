@@ -9,17 +9,17 @@ log_filename = 'simulation.log'
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+formatter = logging.Formatter('%(asctime)s - %(levelname)8s - %(message)s')
+
 # Cria um handler para exibir no terminal
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
-console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(console_formatter)
+console_handler.setFormatter(formatter)
 
 # Cria um handler para gravar em arquivo
 file_handler = logging.FileHandler(log_filename, mode='w', encoding='utf-8')
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(file_formatter)
+file_handler.setFormatter(formatter)
 
 # Adiciona os handlers ao logger
 logger.addHandler(console_handler)
@@ -71,31 +71,31 @@ def run_simulation(nodes, network, num_nodes):
             nodes.append(new_node)
 
 def main():
-    num_nodes = 5
-    network = Network()
-
-    # Lista auxiliar para iterar e controlar na função principal
-    nodes = [Node(i, network=network) for i in range(1, num_nodes + 1)]
-    
-    for node in nodes:
-        network.add_node(node)
-
-    # Desativa o líder informando a rede
-    network.remove_node(network.leader)
-    nodes.remove(network.leader) # Remove o nó da lista auxiliar
-    
-    # Adiciona um novo nó dinamicamente
-    num_nodes += 1
-    new_node = Node(num_nodes, network=network)
-    network.add_node(new_node)
-    nodes.append(new_node)
-    
-    # Desativa o líder inesperadamente
-    network.leader.kill()
-
-    # Executa a simulação de comunicação e falhas
     try:
-        run_simulation(nodes, network, num_nodes)
+        num_nodes = 5
+        network = Network()
+
+        # Lista auxiliar para iterar e controlar na função principal
+        nodes = [Node(i, network=network) for i in range(1, num_nodes + 1)]
+        
+        for node in nodes:
+            network.add_node(node)
+
+        # Desativa o líder informando a rede
+        network.remove_node(network.leader)
+        nodes.remove(network.leader) # Remove o nó da lista auxiliar
+        
+        # Adiciona um novo nó dinamicamente
+        num_nodes += 1
+        new_node = Node(num_nodes, network=network)
+        network.add_node(new_node)
+        nodes.append(new_node)
+        
+        # Desativa o líder inesperadamente
+        network.leader.kill()
+
+        # Executa a simulação de comunicação e falhas
+        # run_simulation(nodes, network, num_nodes)
     except KeyboardInterrupt:
         logger.info("Simulação interrompida pelo usuário.")
     except Exception as e:
@@ -103,7 +103,7 @@ def main():
     finally:
         logger.info(f"Fim da simulação. Nós restantes:")
         for node in nodes:
-            logger.info(f"{node.node_id}")
+            logger.info(f"Nó {node.node_id}")
 
 if __name__ == '__main__':
     main()
