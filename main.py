@@ -72,7 +72,7 @@ def run_simulation(nodes, network, num_nodes):
 
 def main():
     try:
-        num_nodes = 15
+        num_nodes = 5
         network = Network()
 
         # Lista auxiliar para iterar e controlar na função principal
