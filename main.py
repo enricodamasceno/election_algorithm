@@ -1,10 +1,9 @@
 import random
 import logging
-import os
 from Node import Node
 from Network import Network
 
-# Configuração do logger 
+# Configuração do logger
 log_filename = 'simulation.log'
 
 logger = logging.getLogger()
@@ -26,7 +25,7 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
-def run_simulation(nodes, network):
+def run_simulation(nodes, network, num_nodes):
     """Função para executar a simulação de comunicação e falhas de nós."""
     while len(nodes) > 1:
         # Escolhe dois nós aleatórios para tentar comunicar
@@ -51,9 +50,10 @@ def run_simulation(nodes, network):
             # Se o nó alvo estiver desativado, escolha um novo alvo
             target_node = random.choice(source_node.nodes) if source_node.nodes else None
         
-        # Realiza a comunicação entre os nós
-        logger.info(f"COMUNICAÇÃO ALEATÓRIA: Nós {source_node.node_id} e {target_node.node_id}")
-        network.net_comm(source_node, target_node)
+        if target_node != source_node:
+            # Realiza a comunicação entre os nós
+            logger.info(f"COMUNICAÇÃO ALEATÓRIA: Nós {source_node.node_id} e {target_node.node_id}")
+            network.net_comm(source_node, target_node)
         
         # Possível queda inesperada de um nó
         if random.random() < 0.1:  # 10% de chance de um nó falhar
@@ -66,7 +66,7 @@ def run_simulation(nodes, network):
         if random.random() < 0.05:  # 5% de chance de adicionar um novo nó
             num_nodes += 1
             new_node = Node(num_nodes, network=network)
-            logger.warning(f"ATIVAÇÃO ALEATÓRIA: Nó {new_node.node_id}")
+            logger.info(f"ATIVAÇÃO ALEATÓRIA: Nó {new_node.node_id}")
             network.add_node(new_node)
             nodes.append(new_node)
 
@@ -95,7 +95,7 @@ def main():
 
     # Executa a simulação de comunicação e falhas
     try:
-        run_simulation(nodes, network)
+        run_simulation(nodes, network, num_nodes)
     except KeyboardInterrupt:
         logger.info("Simulação interrompida pelo usuário.")
     except Exception as e:
