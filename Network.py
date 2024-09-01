@@ -20,12 +20,12 @@ class Network:
         with self.network_lock:
             self.nodes.append(node)
             node.nodes = self.nodes
-            logger.debug(f"Nó {node.node_id} foi adicionado à rede.")
             if Node.current_leader and Node.current_leader.alive:
                 # Garante que o nó reconhece o líder atual
                 node.leader = Node.current_leader
-                logger.debug(f"Nó {node.node_id} reconheceu o líder existente: Nó {node.leader.node_id}.")
+                logger.debug(f"Nó {node.node_id} foi adicionado à rede e reconheceu o líder existente: Nó {node.leader.node_id}.")
             else:
+                logger.debug(f"Nó {node.node_id} foi adicionado à rede.")
                 node.elect_leader()
 
     def remove_node(self, node):
@@ -36,7 +36,7 @@ class Network:
                 logger.debug(f"Nó {node.node_id} era o líder. Iniciando nova eleição.")
                 self.nodes[0].elect_leader()  # Inicia uma nova eleição feita pelo primeiro nó da lista.
 
-    def communicate(self, source_node, target_node):
+    def net_comm(self, source_node, target_node):
         # Simula latência da rede
         latency = random.uniform(0.1, 1.0)
         time.sleep(latency)
@@ -46,5 +46,5 @@ class Network:
             logger.warning(f"Mensagem de Nó {source_node.node_id} para Nó {target_node.node_id} foi perdida.")
             return False
 
-        target_node.communicate(source_node)
+        source_node.communicate(target_node)
         return True

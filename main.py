@@ -18,18 +18,24 @@ def main():
     for node in nodes:
         logger.debug(f"Nó {node.node_id}: Líder eleito - Nó {node.leader.node_id if node.leader else 'Nenhum'}")
 
-    # Desativa o líder
-    nodes[0].kill()
+    # Desativa o líder informando a rede
+    Node.current_leader.deactivate()
+    
+    # A desativação programada do líder informa a rede da necessidade de uma nova eleição.
+    # O Nó 2 é eleito.
 
     # Adiciona um novo nó dinamicamente
-    new_node -= Node(num_nodes + 1, network=network)
+    new_node = Node(num_nodes + 1, network=network)
     network.add_node(new_node)
     nodes.append(new_node)
+    
+    # Desativa o líder inesperadamente:
+    # Assim, os nós só saberão de sua queda durante a tentativa de comunicação.
+    Node.current_leader.kill()
 
     # Os nós tentam se comunicar com o líder e detectam que ele está morto
     for node in nodes:
-        if node.alive:  # Apenas nós vivos tentam se comunicar
-            network.communicate(node, node.leader)
+        network.net_comm(node, node.leader) # Cada nó tenta se comunicar com "seu próprio líder".
 
     # Mostra qual nó foi eleito como líder após a morte do nó anterior
     for node in nodes:
