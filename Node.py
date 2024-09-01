@@ -1,12 +1,7 @@
 import logging
 from threading import Lock
 
-# Configuração do logger
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s %(levelname)-s: %(message)s'
-)
 
 class Node:
     election_lock = Lock()  # Trava compartilhada para prevenir eleições simultâneas
@@ -22,54 +17,73 @@ class Node:
 
     def elect_leader(self):
         with Node.election_lock:
-            if Node.current_leader and Node.current_leader.alive:
-                logger.debug(f"Nó {self.node_id} detectou líder existente: Nó {Node.current_leader.node_id}")
-                return
+            if self.leader and self.leader.alive:
+                if self.network.net_comm(self, self.leader):
+                    logger.debug(f"Nó {self.node_id} detectou líder existente: Nó {self.leader.node_id}")
+                    return
             
-            logger.debug(f"Nó {self.node_id} começando processo de eleição.")
+            logger.debug(f"Nó {self.node_id} iniciando processo de eleição.")
             max_priority_node = min(
                 [node for node in self.nodes if node.alive], 
                 key=lambda node: node.node_id
             )
-
-            #TODO trocar para informar a rede no lugar da classe
-            Node.current_leader = max_priority_node
             
-            self.leader = Node.current_leader
+            self.leader = max_priority_node
+            self.network.leader = self.leader
             
             for node in self.nodes:
-                Node.current_leader.communicate(node)
+                if node != self: # Não se comunica consigo mesmo
+                    self.network.net_comm(self, node)
             
-            logger.debug(f"Eleição concluída. Líder eleito: Nó {Node.current_leader.node_id}")
-
-    # def notify_leader(self, leader_node):
-    #     for node in self.nodes:
-    #         node.leader = leader_node
-    #         if node != self:
-    #             logger.debug(f"Nó {node.node_id} notificado para reconhecer o novo líder: Nó {leader_node.node_id}")
+            logger.debug(f"Eleição concluída. Líder eleito: Nó {self.leader.node_id}")
 
     def communicate(self, target_node):
-        if self.alive: # Apenas nós vivos podem se comunicar
-            if target_node == self:
-                return
-            
-            if not target_node.alive:
-                logger.warning(f"Nó {self.node_id} detectou que o Nó {target_node.node_id} está desativado.")
+        if not self.alive: # Apenas nós vivos podem se comunicar
+            return
+        
+        if target_node == self: # Evita que se comuniquem consigo mesmos
+            return
+        
+        if not target_node.alive:
+            logger.warning(f"Nó {self.node_id} detectou que o Nó {target_node.node_id} está desativado.")
+            try:
                 self.nodes.remove(target_node)
-                if target_node == self.leader:
-                    logger.debug(f"Nó {self.node_id} iniciando nova eleição devido à morte do líder.")
-                    self.elect_leader()
-            else:
-                target_node.leader = self.leader
+            except ValueError:
+                logger.error(f"Tentativa de remover Nó {target_node.node_id} da lista de nós do Nó {self.node_id}, mas ele não está na lista.")
+            except Exception as e:
+                logger.error(f"Erro inesperado ao tentar remover Nó {target_node.node_id} da lista de nós do Nó {self.node_id}: {e}")
+                
+            if target_node == self.leader:
+                logger.debug(f"Nó {self.node_id} chamando nova eleição devido à morte do líder.")
+                self.elect_leader()
+                
+            # Informa os outros nós da desativação do anterior.
+            for node in self.nodes:
+                self.network.net_comm(self, node)
+                
+        else:
+            if target_node.nodes != self.nodes:
                 target_node.nodes = self.nodes
-                logger.debug(f"Nó {self.node_id} está informando {target_node.node_id} do líder: {target_node.leader.node_id}.")
-
-    def deactivate(self):
-        logger.debug(f"Nó {self.node_id} está sendo desativado de forma programada.")
-        self.alive = False
-        if self.network:
-            self.network.remove_node(self)
+                        
+            if target_node == self.leader:
+                logger.debug(f"Nó {self.node_id} tentando contatar o líder: Nó {target_node.node_id}")
+                
+                if target_node.leader != self.leader:
+                    target_node.leader = self.leader
+                    logger.debug(f"Nó {self.node_id} informando o Nó {target_node.node_id} que ele será o líder.")
+                
+                return True
+            
+            else:
+                if target_node.leader != self.leader:
+                    target_node.leader = self.leader
+                    logger.debug(f"Nó {self.node_id} está informando Nó {target_node.node_id} do líder: {target_node.leader.node_id}.")
+                
+                else:
+                    logger.debug(f"Nó {self.node_id} se comunicou com Nó {target_node.node_id}.")
+                    
+                return True
             
     def kill(self):
-        logger.warning(f"Nó {self.node_id} caiu.")
+        logger.error(f"Nó {self.node_id} caiu.")
         self.alive = False
