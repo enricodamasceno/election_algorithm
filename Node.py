@@ -32,37 +32,43 @@ class Node:
                 key=lambda node: node.node_id
             )
 
+            #TODO trocar para informar a rede no lugar da classe
             Node.current_leader = max_priority_node
-            self.notify_leader(Node.current_leader)
-            logger.debug(f"Nó {self.node_id} - Eleição concluída. Líder eleito: Nó {Node.current_leader.node_id}")
+            
+            self.leader = Node.current_leader
+            
+            for node in self.nodes:
+                Node.current_leader.communicate(node)
+            
+            logger.debug(f"Eleição concluída. Líder eleito: Nó {Node.current_leader.node_id}")
 
-    def notify_leader(self, leader_node):
-        for node in self.nodes:
-            node.leader = leader_node
-            if node != self:
-                logger.debug(f"Nó {node.node_id} notificado para reconhecer o novo líder: Nó {leader_node.node_id}")
+    # def notify_leader(self, leader_node):
+    #     for node in self.nodes:
+    #         node.leader = leader_node
+    #         if node != self:
+    #             logger.debug(f"Nó {node.node_id} notificado para reconhecer o novo líder: Nó {leader_node.node_id}")
 
     def communicate(self, target_node):
         if self.alive: # Apenas nós vivos podem se comunicar
             if target_node == self:
                 return
             
-            logger.debug(f"Nó {self.node_id} está tentando se comunicar com {target_node.node_id}.")
-            
             if not target_node.alive:
-                logger.warning(f"Nó {self.node_id} detectou que o líder Nó {target_node.node_id} está morto.")
+                logger.warning(f"Nó {self.node_id} detectou que o Nó {target_node.node_id} está desativado.")
+                self.nodes.remove(target_node)
                 if target_node == self.leader:
                     logger.debug(f"Nó {self.node_id} iniciando nova eleição devido à morte do líder.")
                     self.elect_leader()
             else:
-                logger.debug(f"Nó {self.node_id} comunicando-se com Nó {target_node.node_id}.")
+                target_node.leader = self.leader
+                target_node.nodes = self.nodes
+                logger.debug(f"Nó {self.node_id} está informando {target_node.node_id} do líder: {target_node.leader.node_id}.")
 
     def deactivate(self):
         logger.debug(f"Nó {self.node_id} está sendo desativado de forma programada.")
         self.alive = False
         if self.network:
             self.network.remove_node(self)
-            logger.debug(f"Nó {self.node_id} foi removido da lista de nós ativos.")
             
     def kill(self):
         logger.warning(f"Nó {self.node_id} caiu.")

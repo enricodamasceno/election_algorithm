@@ -42,9 +42,10 @@ class Network:
         time.sleep(latency)
 
         # Simula perda de pacotes
-        if random.random() < 0.1:  # 10% de chance de perda de pacotes
-            logger.warning(f"Mensagem de Nó {source_node.node_id} para Nó {target_node.node_id} foi perdida.")
-            return False
+        if source_node.alive: # Apenas nós vivos enviam pacotes
+            if random.random() < 0.1:  # 10% de chance de perda de pacotes
+                logger.warning(f"Mensagem de Nó {source_node.node_id} para Nó {target_node.node_id} foi perdida.")
+                return False
 
         source_node.communicate(target_node)
         return True

@@ -7,16 +7,16 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger(__name__)
 
 def main():
-    num_nodes = 5
+    num_nodes = 6
     network = Network()
 
     nodes = [Node(i, network=network) for i in range(1, num_nodes + 1)]
     for node in nodes:
         network.add_node(node)
 
-    # Debugging para mostrar qual nó foi eleito como líder
-    for node in nodes:
-        logger.debug(f"Nó {node.node_id}: Líder eleito - Nó {node.leader.node_id if node.leader else 'Nenhum'}")
+    # # Debugging para mostrar qual nó foi eleito como líder
+    # for node in nodes:
+    #     logger.debug(f"Nó {node.node_id}: Líder eleito - Nó {node.leader.node_id if node.leader else 'Nenhum'}")
 
     # Desativa o líder informando a rede
     Node.current_leader.deactivate()
