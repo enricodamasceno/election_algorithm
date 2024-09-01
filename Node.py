@@ -33,12 +33,6 @@ class Node:
         logger.info(f"Eleição concluída. Líder eleito: Nó {self.leader.node_id}")
 
     def communicate(self, target_node):
-        if not self.alive: # Apenas nós vivos podem se comunicar
-            return
-        
-        if target_node == self: # Evita que se comuniquem consigo mesmos
-            return
-        
         if not target_node.alive:
             logger.warning(f"Nó {self.node_id} detectou que o Nó {target_node.node_id} está desativado.")
             try:
@@ -56,10 +50,7 @@ class Node:
             for node in self.nodes:
                 self.network.net_comm(self, node)
                 
-        else:
-            if target_node.nodes != self.nodes:
-                target_node.nodes = self.nodes
-                        
+        else:                        
             if target_node == self.leader:
                 logger.debug(f"Nó {self.node_id} tentando contatar o líder: Nó {target_node.node_id}")
                 
@@ -73,9 +64,6 @@ class Node:
                 if target_node.leader != self.leader:
                     target_node.leader = self.leader
                     logger.debug(f"Nó {self.node_id} está informando Nó {target_node.node_id} do líder: {target_node.leader.node_id}.")
-                
-                else:
-                    logger.debug(f"Nó {self.node_id} se comunicou com Nó {target_node.node_id}.")
                     
                 return True
             

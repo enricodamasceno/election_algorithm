@@ -72,7 +72,7 @@ def run_simulation(nodes, network, num_nodes):
 
 def main():
     try:
-        num_nodes = 5
+        num_nodes = 15
         network = Network()
 
         # Lista auxiliar para iterar e controlar na função principal
@@ -95,7 +95,7 @@ def main():
         network.leader.kill()
 
         # Executa a simulação de comunicação e falhas
-        # run_simulation(nodes, network, num_nodes)
+        run_simulation(nodes, network, num_nodes)
     except KeyboardInterrupt:
         logger.info("Simulação interrompida pelo usuário.")
     except Exception as e:
